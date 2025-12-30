@@ -16,5 +16,6 @@ def reason_threat(perception, mission_mode):
         "confidence": round(confidence, 3),
         "threshold": threshold,
         "modality": modality,
-        "mission": mission_mode
+        "mission": mission_mode,
+        "evidence": perception.get("evidence")  #  IMPORTANT
     }
