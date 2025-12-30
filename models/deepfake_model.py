@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 from PIL import Image
 
-# Load pretrained model (placeholder path)
 model = torch.hub.load(
     'pytorch/vision:v0.10.0',
     'xception',
@@ -19,25 +18,25 @@ transform = transforms.Compose([
 
 def analyze_video(video_path):
     cap = cv2.VideoCapture(video_path)
-    confidences = []
+    frame_scores = []
 
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
-        face = cv2.resize(frame, (299, 299))
-        face = Image.fromarray(face)
+        face = Image.fromarray(frame)
         face = transform(face).unsqueeze(0)
 
         with torch.no_grad():
             output = model(face)
             confidence = torch.sigmoid(output).item()
-            confidences.append(confidence)
+            frame_scores.append((confidence, frame))
 
     cap.release()
 
-    if len(confidences) == 0:
-        return 0.0
+    if not frame_scores:
+        return 0.0, []
 
-    return float(np.mean(confidences))
+    avg_conf = float(np.mean([x[0] for x in frame_scores]))
+    return avg_conf, frame_scores
