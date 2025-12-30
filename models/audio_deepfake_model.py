@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-# Simple pretrained-style MLP (lightweight, edge-ready)
 class AudioDeepfakeNet(nn.Module):
     def __init__(self):
         super().__init__()
@@ -17,17 +16,19 @@ class AudioDeepfakeNet(nn.Module):
         return self.net(x)
 
 model = AudioDeepfakeNet()
-model.eval()  # assume pretrained weights loaded in real deployment
+model.eval()
 
 def analyze_audio(audio_path):
     y, sr = librosa.load(audio_path, sr=16000)
     mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40)
-    mfcc_mean = np.mean(mfcc, axis=1)
 
-    features = torch.tensor(mfcc_mean).float().unsqueeze(0)
+    segment_scores = []
+    for i in range(mfcc.shape[1]):
+        segment = mfcc[:, i]
+        feature = torch.tensor(segment).float().unsqueeze(0)
 
-    with torch.no_grad():
-        output = model(features)
-        confidence = torch.sigmoid(output).item()
+        with torch.no_grad():
+            score = torch.sigmoid(model(feature)).item()
+            segment_scores.append(score)
 
-    return confidence
+    return float(np.mean(segment_scores)), segment_scores
