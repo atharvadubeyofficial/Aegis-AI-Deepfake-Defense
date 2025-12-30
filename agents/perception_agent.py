@@ -20,7 +20,7 @@ def perceive_media(uploaded_file):
 
         return {
             "confidence": confidence,
-            "modality": "Video",
+            "modality": "video",
             "evidence": flagged_frame
         }
 
@@ -31,7 +31,7 @@ def perceive_media(uploaded_file):
 
         return {
             "confidence": confidence,
-            "modality": "Audio",
+            "modality": "audio",
             "evidence": suspicious_audio
         }
 
