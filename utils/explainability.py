@@ -1,13 +1,13 @@
-def generate_explanation(video_conf=None, audio_conf=None):
+def generate_explanation(confidence, modality):
     reasons = []
 
-    if video_conf and video_conf > 0.5:
-        reasons.append("Facial motion inconsistency detected")
+    if modality == "Video" and confidence > 0.5:
+        reasons.append("Abnormal facial motion patterns detected across frames")
 
-    if audio_conf and audio_conf > 0.5:
-        reasons.append("Spectral anomalies found in audio signal")
+    if modality == "Audio" and confidence > 0.5:
+        reasons.append("Spectral and MFCC inconsistencies indicate synthetic voice")
 
     if not reasons:
-        reasons.append("No significant manipulation patterns detected")
+        reasons.append("No significant deepfake indicators detected")
 
     return reasons
