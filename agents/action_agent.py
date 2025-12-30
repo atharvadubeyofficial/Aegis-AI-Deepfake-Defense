@@ -1,5 +1,7 @@
 def take_action(decision):
     if decision["decision"] == "Threat":
-        return "🚨 Threat Detected. Immediate Alert Triggered."
+        if decision["mission"] == "Critical Mission":
+            return "🚨 CRITICAL ALERT: Media flagged as deepfake. Mission integrity compromised."
+        return "⚠️ Alert: Potential deepfake detected. Manual verification advised."
     else:
-        return "✅ Media Verified as Authentic."
+        return "✅ Media verified as authentic. No action required."
