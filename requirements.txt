@@ -1,5 +1,6 @@
 streamlit
-opencv-python
 numpy
 torch
 librosa
+opencv-python-headless
+Pillow
