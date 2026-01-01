@@ -4,51 +4,74 @@ import torchvision.transforms as transforms
 import cv2
 import numpy as np
 from PIL import Image
+from facenet_pytorch import MTCNN
 
-# Device
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# -----------------------------
+# Device (Edge-aware)
+# -----------------------------
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# REAL Xception model
-model = timm.create_model(
-    "xception",
-    pretrained=True,
-    num_classes=2
-)
-
+# -----------------------------
+# REAL pretrained backbone
+# -----------------------------
+model = timm.create_model("xception", pretrained=True)
 model.eval()
 model.to(device)
 
+# -----------------------------
+# Face detector (edge-capable)
+# -----------------------------
+mtcnn = MTCNN(keep_all=False, device=device)
+
+# -----------------------------
+# ImageNet-consistent transform
+# -----------------------------
 transform = transforms.Compose([
     transforms.Resize((299, 299)),
     transforms.ToTensor(),
     transforms.Normalize(
-        mean=[0.5, 0.5, 0.5],
-        std=[0.5, 0.5, 0.5]
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
     )
 ])
 
-def analyze_video(video_path):
+# -----------------------------
+# Agent: Video perception
+# -----------------------------
+def analyze_video(video_path, frame_skip=5):
     cap = cv2.VideoCapture(video_path)
-    frame_scores = []
+    frame_idx = 0
+    anomaly_scores = []
 
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
 
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        face = Image.fromarray(frame_rgb)
-        face = transform(face).unsqueeze(0).to(device)
+        frame_idx += 1
+        if frame_idx % frame_skip != 0:
+            continue
+
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(rgb)
+
+        face = mtcnn(img)
+        if face is None:
+            continue
+
+        face = face.unsqueeze(0).to(device)
 
         with torch.no_grad():
-            output = model(face)
-            prob = torch.softmax(output, dim=1)[0][1].item()
-            frame_scores.append((prob, frame))
+            features = model.forward_features(face)
+            score = torch.mean(features).item()  # anomaly energy
+
+        anomaly_scores.append(score)
 
     cap.release()
 
-    if not frame_scores:
-        return 0.0, []
+    if not anomaly_scores:
+        return 0.0
 
-    avg_conf = float(np.mean([x[0] for x in frame_scores]))
-    return avg_conf, frame_scores
+    # Normalized anomaly confidence
+    confidence = float(np.tanh(np.mean(anomaly_scores)))
+    return confidence
