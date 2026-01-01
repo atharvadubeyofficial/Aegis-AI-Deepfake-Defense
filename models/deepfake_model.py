@@ -42,6 +42,7 @@ def analyze_video(video_path, frame_skip=5):
     cap = cv2.VideoCapture(video_path)
     frame_idx = 0
     anomaly_scores = []
+    flagged_frame = None
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -63,15 +64,18 @@ def analyze_video(video_path, frame_skip=5):
 
         with torch.no_grad():
             features = model.forward_features(face)
-            score = torch.mean(features).item()  # anomaly energy
+            score = torch.mean(features).item()
 
         anomaly_scores.append(score)
+
+        # store first suspicious frame
+        if flagged_frame is None:
+            flagged_frame = Image.fromarray(rgb)
 
     cap.release()
 
     if not anomaly_scores:
-        return 0.0
+        return 0.0, None
 
-    # Normalized anomaly confidence
     confidence = float(np.tanh(np.mean(anomaly_scores)))
-    return confidence
+    return confidence, flagged_frame
