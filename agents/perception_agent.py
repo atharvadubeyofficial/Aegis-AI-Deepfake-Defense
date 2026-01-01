@@ -1,4 +1,5 @@
 import tempfile
+import os
 import cv2
 import numpy as np
 from models.deepfake_model import analyze_video
