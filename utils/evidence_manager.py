@@ -1,10 +1,10 @@
 import os
 import json
+import shutil
 from datetime import datetime
 
 EVIDENCE_DIR = "evidence"
 
-os.makedirs(EVIDENCE_DIR, exist_ok=True)
 os.makedirs(f"{EVIDENCE_DIR}/audio", exist_ok=True)
 os.makedirs(f"{EVIDENCE_DIR}/video", exist_ok=True)
 os.makedirs(f"{EVIDENCE_DIR}/metadata", exist_ok=True)
@@ -19,15 +19,13 @@ def save_evidence(modality, data, confidence, mission):
         "timestamp": timestamp
     }
 
-    # ---- AUDIO EVIDENCE ----
+    # ---- AUDIO ----
     if modality == "audio":
         audio_path = f"{EVIDENCE_DIR}/audio/audio_{timestamp}.wav"
-        with open(audio_path, "wb") as f:
-            f.write(data)
-
+        shutil.copyfile(data, audio_path)
         meta["evidence_path"] = audio_path
 
-    # ---- VIDEO EVIDENCE ----
+    # ---- VIDEO ----
     elif modality == "video":
         frame_path = f"{EVIDENCE_DIR}/video/frame_{timestamp}.jpg"
         data.save(frame_path)
