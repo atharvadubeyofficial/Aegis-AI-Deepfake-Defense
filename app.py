@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import streamlit as st
 from agents.perception_agent import perceive_media
 from agents.reasoning_agent import reason_threat
