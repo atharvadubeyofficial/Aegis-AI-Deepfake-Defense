@@ -1,6 +1,10 @@
-streamlit
-numpy
 torch
-librosa
-opencv-python-headless
+torchvision
+timm
+opencv-python
+numpy
 Pillow
+librosa
+soundfile
+streamlit
+scipy
